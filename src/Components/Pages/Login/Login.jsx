@@ -1,72 +1,49 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Notification from "../Notification/Notification"; // Ensure correct path
 
 const Login = () => {
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({ email: '', password: '' });
+    const [notification, setNotification] = useState(null);
+
     const emailRef = useRef();
     const passwordRef = useRef();
 
-    const [errors, setErrors] = useState({
-        email: '',
-        password: ''
-    });
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Clear previous errors
-        setErrors({
-            email: '',
-            password: ''
-        });
+        setErrors({ email: '', password: '' });
 
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
 
         let formErrors = {};
+        if (!email) formErrors.email = "Email is required";
+        if (!password) formErrors.password = "Password is required";
 
-        // Simple validation
-        if (!email) {
-            formErrors.email = "Email is required";
-        }
-        if (!password) {
-            formErrors.password = "Password is required";
-        }
-
-        // If there are validation errors, set them and return
         if (Object.keys(formErrors).length > 0) {
             setErrors(formErrors);
             return;
         }
 
         try {
-            // URL encode form data
-            const encodedData = new URLSearchParams();
-            encodedData.append('email', email);
-            encodedData.append('password', password);
+            setLoading(true);
 
-            const res = await axios.post("http://localhost:3000/users/login", encodedData, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
+            const res = await axios.post("http://localhost:3000/users/login", { email, password });
 
-            // Show alert on successful login
-            alert("Login successful!");
-
-            console.log(res.data);
+            setNotification({ message: "Login successful!", type: "success" });
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
-            window.location.href = '/';
+            navigate('/home');
         } catch (err) {
-            // Check if the error response data exists
-            if (err.response && err.response.data) {
-                console.log(err.response.data);
-                setErrors(err.response.data);
-            } else {
-                console.error('An unexpected error occurred.');
-            }
+            console.error('An unexpected error occurred.', err);
+            setErrors(err.response?.data || { general: 'An unexpected error occurred.' });
+            setNotification({ message: "Login failed. Please try again.", type: "error" });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -107,8 +84,19 @@ const Login = () => {
                         <button
                             type="submit"
                             className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded text-sm"
+                            disabled={loading}
                         >
-                            Login
+                            {loading ? (
+                                <span className="flex items-center justify-center">
+                                    <svg className="animate-spin h-5 w-5 mr-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v2a6 6 0 00-6 6H4zm12 0a6 6 0 00-6-6v2a8 8 0 018 8h-2z"></path>
+                                    </svg>
+                                    Loading...
+                                </span>
+                            ) : (
+                                'Login'
+                            )}
                         </button>
                     </div>
                 </form>
@@ -120,6 +108,14 @@ const Login = () => {
                     </Link>
                 </p>
             </div>
+
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </motion.div>
     );
 };

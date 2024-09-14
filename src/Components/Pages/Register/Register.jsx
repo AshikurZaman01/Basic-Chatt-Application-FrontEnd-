@@ -1,9 +1,13 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
+import Notification from "../Notification/Notification"; // Adjust the path if necessary
 
 const Register = () => {
+
+    const navigate = useNavigate();
+
     const nameRef = useRef();
     const emailRef = useRef();
     const passwordRef = useRef();
@@ -16,6 +20,8 @@ const Register = () => {
         image: ''
     });
 
+    const [notification, setNotification] = useState(null);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -26,32 +32,21 @@ const Register = () => {
 
         let formErrors = {};
 
-        if (!name) {
-            formErrors.name = "Name is required";
-        }
-        if (!email) {
-            formErrors.email = "Email is required";
-        }
-        if (!password) {
-            formErrors.password = "Password is required";
-        }
+        if (!name) formErrors.name = "Name is required";
+        if (!email) formErrors.email = "Email is required";
+        if (!password) formErrors.password = "Password is required";
 
-        // Set errors if any
         if (Object.keys(formErrors).length > 0) {
             setErrors(formErrors);
             return;
         }
 
-        // If all fields are valid, create formData and send the request
         const formData = new FormData();
         formData.append("name", name);
         formData.append("email", email);
         formData.append("password", password);
 
-        // Only append the image if one is selected
-        if (image) {
-            formData.append("image", image);
-        }
+        if (image) formData.append("image", image);
 
         try {
             const response = await axios.post("http://localhost:3000/users/register", formData, {
@@ -59,25 +54,25 @@ const Register = () => {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            console.log(response);
-            alert("User registered successfully");
 
-            // Reset form fields
+            setNotification({ message: "User registered successfully!", type: "success" });
             nameRef.current.value = '';
             emailRef.current.value = '';
             passwordRef.current.value = '';
             imageRef.current.value = ''; // Clear the file input
 
-            // Clear errors
+            navigate('/');
+
             setErrors({
                 name: '',
                 email: '',
                 password: '',
                 image: ''
             });
+
         } catch (error) {
             console.error(error.response?.data || error.message);
-            alert("Error registering user");
+            setNotification({ message: "Error registering user", type: "error" });
         }
     };
 
@@ -101,7 +96,6 @@ const Register = () => {
                                 ref={nameRef}
                                 className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                                 placeholder="Enter your name"
-                                
                             />
                             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                         </div>
@@ -113,7 +107,6 @@ const Register = () => {
                                 ref={emailRef}
                                 className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                                 placeholder="Enter your email"
-                                
                             />
                             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                         </div>
@@ -125,7 +118,6 @@ const Register = () => {
                                 ref={passwordRef}
                                 className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                                 placeholder="Enter your password"
-                                
                             />
                             {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                         </div>
@@ -154,6 +146,14 @@ const Register = () => {
                     </p>
                 </div>
             </motion.div>
+
+            {notification && (
+                <Notification
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
         </div>
     );
 };
