@@ -1,18 +1,73 @@
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
     const emailRef = useRef();
     const passwordRef = useRef();
 
-    const handleSubmit = (e) => {
+    const [errors, setErrors] = useState({
+        email: '',
+        password: ''
+    });
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Clear previous errors
+        setErrors({
+            email: '',
+            password: ''
+        });
 
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
 
-        console.log({ email, password });
+        let formErrors = {};
+
+        // Simple validation
+        if (!email) {
+            formErrors.email = "Email is required";
+        }
+        if (!password) {
+            formErrors.password = "Password is required";
+        }
+
+        // If there are validation errors, set them and return
+        if (Object.keys(formErrors).length > 0) {
+            setErrors(formErrors);
+            return;
+        }
+
+        try {
+            // URL encode form data
+            const encodedData = new URLSearchParams();
+            encodedData.append('email', email);
+            encodedData.append('password', password);
+
+            const res = await axios.post("http://localhost:3000/users/login", encodedData, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            });
+
+            // Show alert on successful login
+            alert("Login successful!");
+
+            console.log(res.data);
+            localStorage.setItem('token', res.data.token);
+            localStorage.setItem('user', JSON.stringify(res.data.user));
+            window.location.href = '/';
+        } catch (err) {
+            // Check if the error response data exists
+            if (err.response && err.response.data) {
+                console.log(err.response.data);
+                setErrors(err.response.data);
+            } else {
+                console.error('An unexpected error occurred.');
+            }
+        }
     };
 
     return (
@@ -34,8 +89,8 @@ const Login = () => {
                             ref={emailRef}
                             className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                             placeholder="Enter your email"
-                            required
                         />
+                        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                     </div>
                     <div>
                         <label className="block text-gray-300 font-semibold mb-1 text-sm">Password</label>
@@ -45,8 +100,8 @@ const Login = () => {
                             ref={passwordRef}
                             className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                             placeholder="Enter your password"
-                            required
                         />
+                        {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                     </div>
                     <div className="text-center">
                         <button

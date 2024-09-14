@@ -101,7 +101,7 @@ const Register = () => {
                                 ref={nameRef}
                                 className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                                 placeholder="Enter your name"
-                                required
+                                
                             />
                             {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                         </div>
@@ -113,7 +113,7 @@ const Register = () => {
                                 ref={emailRef}
                                 className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                                 placeholder="Enter your email"
-                                required
+                                
                             />
                             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
                         </div>
@@ -125,7 +125,7 @@ const Register = () => {
                                 ref={passwordRef}
                                 className="w-full border border-gray-500 rounded-md px-3 py-2 bg-gray-700 text-gray-100 text-sm"
                                 placeholder="Enter your password"
-                                required
+                                
                             />
                             {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
                         </div>

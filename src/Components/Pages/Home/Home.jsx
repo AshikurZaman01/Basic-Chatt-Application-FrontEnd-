@@ -7,7 +7,6 @@ const Home = () => {
     return (
 
         <div>
-            <Register></Register>
             <Login></Login>
             {/* <div className="flex">
             <div className="w-1/3">
