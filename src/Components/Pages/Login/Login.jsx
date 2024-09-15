@@ -15,35 +15,45 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErrors({ email: '', password: '' });
+        setErrors({ email: '', password: '' }); // Clear previous errors
 
         const email = emailRef.current.value;
         const password = passwordRef.current.value;
 
+        // Client-side validation
         let formErrors = {};
         if (!email) formErrors.email = "Email is required";
         if (!password) formErrors.password = "Password is required";
 
+        // Check if there are any form errors
         if (Object.keys(formErrors).length > 0) {
             setErrors(formErrors);
             return;
         }
 
         try {
-            setLoading(true);
+            setLoading(true); // Set loading state
 
+            // Call login API
             const res = await axios.post("http://localhost:3000/users/login", { email, password });
 
+            // If login is successful
             setNotification({ message: "Login successful!", type: "success" });
+
+            // Store the token and user data in localStorage
             localStorage.setItem('token', res.data.token);
             localStorage.setItem('user', JSON.stringify(res.data.user));
+
+            // Redirect to the home page or inbox
             navigate('/home');
+
         } catch (err) {
+            // Handle errors (e.g., wrong credentials or network issues)
             console.error('An unexpected error occurred.', err);
             setErrors(err.response?.data || { general: 'An unexpected error occurred.' });
             setNotification({ message: "Login failed. Please try again.", type: "error" });
         } finally {
-            setLoading(false);
+            setLoading(false); // Stop loading after request is finished
         }
     };
 
